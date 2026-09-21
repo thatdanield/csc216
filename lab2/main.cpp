@@ -1,16 +1,88 @@
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
 
-// TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-int main() {
-    // TIP Press <shortcut actionId="RenameElement"/> when your caret is at the <b>lang</b> variable name to see how CLion can help you rename it.
-    auto lang = "C++";
-    std::cout << "Hello and welcome to " << lang << "!\n";
+#include <chrono>
+#include <fstream>
+#include <string>
 
-    for (int i = 1; i <= 5; i++) {
-        // TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        std::cout << "i = " << i << std::endl;
+int naivePower(int base, int exponent) {
+    if (exponent == 0) {
+        return 1;
     }
+    if (base == 0) {
+        return 0;
+    }
+    return base * naivePower(base, exponent - 1);
+}
 
-    return 0;
-    // TIP See CLion help at <a href="https://www.jetbrains.com/help/clion/">jetbrains.com/help/clion/</a>. Also, you can try interactive lessons for CLion by selecting 'Help | Learn IDE Features' from the main menu.
+int unoptimizedDCPower(int base, int exponent) {
+    if (exponent == 0) {
+        return 1;
+    }
+    if (base == 0) {
+        return 0;
+    }
+    if (exponent % 2 == 0) {
+        return unoptimizedDCPower(base * base, exponent / 2);
+    }
+    return base * unoptimizedDCPower(base * base, (exponent - 1) / 2);
+}
+
+int optimizedDCPower(int base, int exponent) {
+    if (exponent == 0) {
+        return 1;
+    }
+    if (base == 0) {
+        return 0;
+    }
+    const int halfPower = optimizedDCPower(base, exponent / 2);
+    if (exponent % 2 == 0) {
+        return halfPower * halfPower;
+    }
+    return base * halfPower * halfPower;
+}
+
+template <typename Function>
+long long runtimeInNanoseconds(Function&& function) {
+    constexpr int iterations = 100'000;
+    volatile int result = 0;
+    const auto start = std::chrono::steady_clock::now();
+    for (int iteration = 0; iteration < iterations; ++iteration) {
+        result = function();
+    }
+    const auto elapsed = std::chrono::steady_clock::now() - start;
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count()
+           / iterations;
+}
+
+TEST_CASE("power algorithms produce expected results and runtime CSV") {
+    std::ofstream output("power_benchmark.csv");
+    REQUIRE(output);
+    output << "x,n,naive_runtime_ns,unoptimized_dc_runtime_ns,optimized_dc_runtime_ns\n";
+
+    for (int x = 0; x <= 8; ++x) {
+        for (int n = 0; n <= 8; ++n) {
+            if (x == 8 && n == 8) {
+                continue;
+            }
+
+            int expected = 1;
+            for (int i = 0; i < n; ++i) {
+                expected *= x;
+            }
+
+            REQUIRE(naivePower(x, n) == expected);
+            REQUIRE(unoptimizedDCPower(x, n) == expected);
+            REQUIRE(optimizedDCPower(x, n) == expected);
+
+            const auto naiveRuntime =
+                runtimeInNanoseconds([&] { return naivePower(x, n); });
+            const auto unoptimizedDCRuntime =
+                runtimeInNanoseconds([&] { return unoptimizedDCPower(x, n); });
+            const auto optimizedDCRuntime =
+                runtimeInNanoseconds([&] { return optimizedDCPower(x, n); });
+
+            output << x << "," << n << "," << naiveRuntime << ","
+                   << unoptimizedDCRuntime << "," << optimizedDCRuntime << "\n";
+        }
+    }
 }

@@ -8,3 +8,4 @@ cmake-build-*/
 
 # Generated benchmark data
 lab1/random_walk.csv
+lab1/random_walk_benchmark.csv
