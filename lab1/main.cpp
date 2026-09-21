@@ -1,8 +1,27 @@
-#include <iostream>
+#include "random_walk.h"
 
-// TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-int main() {
-    // TIP Press <shortcut actionId="RenameElement"/> when your caret is at the <b>lang</b> variable name to see how CLion can help you rename it.
+#include <cstdlib>
 
-    // TIP See CLion help at <a href="https://www.jetbrains.com/help/clion/">jetbrains.com/help/clion/</a>. Also, you can try interactive lessons for CLion by selecting 'Help | Learn IDE Features' from the main menu.
+int randomWalk(int steps) {
+    int x = 0;
+    for (int i = 0; i < steps; i++) {
+        if (std::rand() % 2 == 0) {
+            x++;
+        } else {
+            x--;
+        }
+    }
+
+    return x;
 }
+
+#ifndef RANDOM_WALK_NO_MAIN
+int main() {
+    int trials = 10;
+    for (int steps = 5; steps < 10; steps++) {
+        for (int i = 0; i < trials; i++) {
+            randomWalk(steps);
+        }
+    }
+}
+#endif
