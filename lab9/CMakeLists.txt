@@ -28,7 +28,16 @@ if(BUILD_TESTING)
     target_link_libraries(NoteTests PRIVATE Catch2::Catch2WithMain)
     target_compile_definitions(NoteTests PRIVATE NOTE_TESTS)
 
+    add_executable(NoteBenchmarks
+            NoteBenchmarkTests.cpp
+            main.cpp
+            HashMap.cpp
+            HashMap.h)
+    target_link_libraries(NoteBenchmarks PRIVATE Catch2::Catch2WithMain)
+    target_compile_definitions(NoteBenchmarks PRIVATE NOTE_TESTS)
+
     include(Catch)
     catch_discover_tests(HashMapTests)
     catch_discover_tests(NoteTests)
+    catch_discover_tests(NoteBenchmarks)
 endif()
