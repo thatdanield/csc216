@@ -1,7 +1,10 @@
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
 
 int step(float probability, int flips) {
-    srand(time(nullptr));
     int heads = 0;
     for (int i = 0; i < flips; ++i)
         if (rand() < probability * RAND_MAX)
@@ -19,18 +22,32 @@ int run(float probability, int flips) {
 }
 
 int main() {
+    srand(time(nullptr));
     int m = 10;
     int flip_counts[] = {100, 1000, 10000, 100000, 1000000};
     float probabilities[] = {0.1, 0.3, 0.5, 0.7, 0.9};
+    float actual_rates[5][5];
 
-    std::cout << "n p expected actual\n";
+    for (int p = 0; p < 5; p++) {
+        for (int n = 0; n < 5; n++) {
+            int heads = run(probabilities[p], flip_counts[n]);
+            actual_rates[p][n] = (float) heads / (m * flip_counts[n]);
+        }
+    }
 
-    for (int i = 0; i < 5; i++) {
-        int n = flip_counts[i];
-        float p = probabilities[i];
-        int heads = run(p, n);
-        float actual_rate = (float) heads / (m * n);
-        std::cout << n << " " << p << " " << p << " " << actual_rate << "\n";
+    cout << "Each cell shows actual heads rate (actual - expected)\n";
+    cout << "p/n";
+    for (int n = 0; n < 5; n++)
+        cout << "\t" << flip_counts[n];
+    cout << "\n";
+
+    for (int p = 0; p < 5; p++) {
+        cout << probabilities[p];
+        for (int n = 0; n < 5; n++) {
+            cout << "\t" << actual_rates[p][n] << " ("
+                 << actual_rates[p][n] - probabilities[p] << ")";
+        }
+        cout << "\n";
     }
 
     return 0;
